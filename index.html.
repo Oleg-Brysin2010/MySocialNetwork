@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Социальная Сеть</title>
+    <style>
+        /* Базовые стили и современный шрифт */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Глубокий темный фон со светящимися фигурами */
+        body {
+            background: #090a0f;
+            color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px 10px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Декоративные светящиеся круги на фоне для эффекта стекла */
+        .bg-glow-1, .bg-glow-2 {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+        }
+        .bg-glow-1 {
+            background: #6366f1; /* Индиго */
+            top: -50px;
+            left: -50px;
+        }
+        .bg-glow-2 {
+            background: #a855f7; /* Пурпурный */
+            bottom: -50px;
+            right: -50px;
+        }
+
+        /* Главный контейнер ленты (как в Твиттере) */
+        .app-container {
+            width: 100%;
+            max-width: 650px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Общий стиль для всех стеклянных панелей */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Шапка сайта */
+        header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        header p {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        /* Форма создания истории */
+        .create-post h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        /* Стеклянные поля ввода */
+        .glass-input, .glass-textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .glass-input::placeholder, .glass-textarea::placeholder {
+            color: #6b7280;
+        }
+        .glass-input:focus, .glass-textarea:focus {
+            border-color: rgba(99, 102, 241, 0.6);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+        }
+        .glass-textarea {
+            resize: none;
+            min-height: 110px;
+            margin-top: 12px;
+        }
+
+        /* Стильная кнопка публикации */
+        .publish-btn {
+            margin-top: 14px;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .publish-btn:hover {
+            opacity: 0.9;
+        }
+        .publish-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Лента и посты */
+        .feed-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 8px;
+            color: #e5e7eb;
+        }
+        .feed-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Стили карточки поста */
+        .post-card {
+            transition: background 0.3s ease;
+        }
+        .post-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .post-card p {
+            font-size: 15px;
+            color: #d1d5db;
+            line-height: 1.6;
+            white-space: pre-wrap; /* Сохраняет абзацы */
+            margin-bottom: 14px;
+        }
+        .post-meta {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: #6b7280;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 10px;
+        }
+
+        /* Состояние загрузки */
+        .loading-text {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 14px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Задний светящийся фон -->
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+
+    <!-- Основное приложение -->
+    <div class="app-container">
+        
+        <!-- Шапка -->
+        <header class="glass-panel">
+            <h1>Моя Соцсеть</h1>
+            <p>Делись своими историями и читай других в реальном времени</p>
+        </header>
+
+        <!-- Создание истории -->
+        <section class="glass-panel create-post">
+            <h2>Новая история</h2>
+            <input type="text" id="post-title" class="glass-input" placeholder="Заголовок истории..." required>
+            <textarea id="post-text" class="glass-textarea" placeholder="Что у тебя нового? Напиши свою историю здесь..." required></textarea>
+            <button id="publish-btn" class="publish-btn">Опубликовать</button>
+        </section>
+
+        <!-- Лента историй -->
+        <main>
+            <h2 class="feed-title">Актуальная лента</h2>
+            <br>
+            <div id="feed" class="feed-container">
+                <div class="loading-text">Подключение к базе данных...</div>
+            </div>
+        </main>
+        
+    </div>
+
+    <!-- КОД FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, orderBy } 
+        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Твоя конфигурация Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBTtvMsNXAi6HJZD5igZmzAKeX1eU8rG9I",
+            authDomain: "mysocialnetwork-131ec.firebaseapp.com",
+            databaseURL: "https://mysocialnetwork-131ec-default-rtdb.firebaseio.com",
+            projectId: "mysocialnetwork-131ec",
+            storageBucket: "mysocialnetwork-131ec.firebasestorage.app",
+            messagingSenderId: "275366142131",
+            appId: "1:275366142131:web:d97858c8dee6242746d0c6",
+            measurementId: "G-TGEM7NNKVL"
+        };
+
+        // Инициализация
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // DOM элементы
+        const titleInput = document.getElementById("post-title");
+        const textInput = document.getElementById("post-text");
+        const publishBtn = document.getElementById("publish-btn");
+        const feed = document.getElementById("feed");
+
+        // Публикация истории
+        publishBtn.addEventListener("click", async function() {
+            const title = titleInput.value.trim();
+            const text = textInput.value.trim();
+
+            if (title === "" || text === "") {
+                alert("Пожалуйста, заполните заголовок и текст истории!");
+                return;
+            }
+
+            try {
+                publishBtn.disabled = true;
+                publishBtn.innerText = "Публикация...";
+
+                await addDoc(collection(db, "posts"), {
+                    title: title,
+                    text: text,
+                    timestamp: serverTimestamp()
+                });
+
+                titleInput.value = "";
+                textInput.value = "";
+            } catch (error) {
+                console.error("Ошибка добавления документа: ", error);
+                alert("Ошибка при публикации. Проверьте настройки базы данных.");
+            } finally {
+                publishBtn.disabled = false;
+                publishBtn.innerText = "Опубликовать";
+            }
+        });
+
+        // Слушатель ленты в реальном времени
+        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+        
+        onSnapshot(q, (querySnapshot) => {
+            feed.innerHTML = "";
+            
+            if (querySnapshot.empty) {
+                feed.innerHTML = `
+                    <div class="glass-panel loading-text">
+                        Здесь пока пусто. Станьте первым, кто расскажет свою историю!
+                    </div>
+                `;
+                return;
+            }
+
+            querySnapshot.forEach((doc) => {
+                const post = doc.data();
+                const postCard = document.createElement("div");
+                postCard.className = "glass-panel post-card";
+                
+                // Форматирование даты
+                const timeString = post.timestamp 
+                    ? new Date(post.timestamp.toDate()).toLocaleString("ru-RU", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        day: "numeric",
+                        month: "short"
+                    }) 
+                    : "Только что";
+
+                postCard.innerHTML = `
+                    <h3>${escapeHtml(post.title)}</h3>
+                    <p>${escapeHtml(post.text)}</p>
+                    <div class="post-meta">
+                        <span>🕒 Опубликовано: ${timeString}</span>
+                    </div>
+                `;
+                
+                feed.appendChild(postCard);
+            });
+        });
+
+        // Функция защиты от вредоносного кода (XSS)
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
+</body>
+</html>
